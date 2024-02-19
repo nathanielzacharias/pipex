@@ -16,6 +16,12 @@
 # include <fcntl.h>
 # include <errno.h>
 
+//parse_pipex(pid, )
+//if !handle_cmds, return 1
+//else pipe_pipex(pid, pipefd, file, cmd)
+
+
+
 int	main(int ac, char *av[])
 {
 	if (ac != 5)
@@ -24,8 +30,8 @@ int	main(int ac, char *av[])
 
 	int	pipefd[2];
 	pipe(pipefd);
-	int rpipe = pipefd[1];
-	int wpipe = pipefd[0];
+	int rpipe = pipefd[0];
+	int wpipe = pipefd[1];
 	printf("rpipe is:", rpipe);
 	printf("wpipe is:", wpipe);
 
@@ -39,16 +45,21 @@ int	main(int ac, char *av[])
 
 	if (pid == 0)
 	{
-		close(wpipe);
+		close(rpipe);
+		//parse_pipex(infile, cmd1, rpipe, pid);
 		return (0);
-		//ft_parse(infile, cmd1, rpipe, pid);
 	}
+
+	//search in $PATH /bin directory for cmd1
+	//check access to 
 
 	else
 	{
 		wait();
-		close(rpipe);
-		//ft_parse(outfile, cmd2, wpipe, pid);
+		close(wpipe);
+		//parse_pipex(outfile, cmd2, wpipe, pid);
 	}
+
+
 
 }
