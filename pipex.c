@@ -28,6 +28,8 @@ const char *pathvar()
 	return(NULL);
 }
 
+
+
 // //parse_pipex(pid, )
 // char	*binpath;
 // char	**cmd_flag;
