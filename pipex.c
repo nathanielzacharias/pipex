@@ -16,7 +16,7 @@
 # include <fcntl.h>
 # include <errno.h>
 
-
+extern const char **environ;
 
 
 //parse_pipex(pid, )
@@ -31,7 +31,7 @@ cmd_flag = ft_split(cmd, ' ');
 
 
 
-int	main(int ac, char *av[], char *envp[])
+int	main(int ac, char *av[])
 {
 	if (ac != 5)
 		return (errno = EINVAL, perror("Program requires 5 args"), 1);
