@@ -16,13 +16,22 @@
 # include <fcntl.h>
 # include <errno.h>
 
+
+
+
 //parse_pipex(pid, )
-//if !handle_cmds, return 1
+char	*binpath;
+char	**cmd_flag;
+int		fd;
+
+cmd_flag = ft_split(cmd, ' ');
+
+
 //else pipe_pipex(pid, pipefd, file, cmd)
 
 
 
-int	main(int ac, char *av[])
+int	main(int ac, char *av[], char *envp[])
 {
 	if (ac != 5)
 		return (errno = EINVAL, perror("Program requires 5 args"), 1);
@@ -59,7 +68,4 @@ int	main(int ac, char *av[])
 		close(wpipe);
 		//parse_pipex(outfile, cmd2, wpipe, pid);
 	}
-
-
-
 }
