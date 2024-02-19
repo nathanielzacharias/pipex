@@ -19,7 +19,7 @@
 int	main(int ac, char *av[])
 {
 	if (ac != 5)
-		return (errno = EINVAL, perror("Too few args"), 1);
+		return (errno = EINVAL, perror("Program requires 5 args"), 1);
 //	else return (printf("win"), 0);
 
 	int	pipefd[2];
