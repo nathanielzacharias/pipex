@@ -19,24 +19,14 @@
 
 extern const char **environ;
 
-void pathvar()
+const char *pathvar()
 {
 	ssize_t	i;
 	i = -1;
 	while(environ[++i])
-	{
-		if(!ft_strncmp((environ[i]), "PATH=", 5))
-			printf("%s", environ[i]);
-	}
-
+		if(!ft_strncmp((environ[i]), "PATH=", 5)) return(environ[i]);
+	return(NULL);
 }
-
-int main(void)
-{
-	pathvar();
-	return 0;
-}
-
 
 // //parse_pipex(pid, )
 // char	*binpath;
@@ -47,7 +37,6 @@ int main(void)
 
 
 // //else pipe_pipex(pid, pipefd, file, cmd)
-
 
 
 // int	main(int ac, char *av[])
