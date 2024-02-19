@@ -39,12 +39,14 @@ int	main(int ac, char *av[], char *envp[])
 
 	int	pipefd[2];
 	pipe(pipefd);
+
 	int rpipe = pipefd[0];
 	int wpipe = pipefd[1];
 	printf("rpipe is:", rpipe);
 	printf("wpipe is:", wpipe);
 
-	int pid = fork();
+	int pid;
+	pid = fork();
 	if (pid < 0) return (errno = ESRCH, perror("pid < 0"), 1);
 
 	char *infile = av[1];
