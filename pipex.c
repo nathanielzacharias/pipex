@@ -40,15 +40,28 @@ const char *get_pathvar()
 
 // //else pipe_pipex(pid, pipefd, file, cmd)
 
+
+char	*access_ok(char *cmd)
+{
+	char	*pathvar;
+	pathvar = get_pathvar();
+	
+	char	*indv_paths;
+	indv_paths = 
+	return(NULL);
+}
+
+
 int	 parse_pipex(char *cmd)
 {
-	char *pathvar;
-	pathvar = get_pathvar();
 
+	char	**cmd_args;
 	cmd_args = ft_split(cmd, ' ');
-	if (!access_ok(cmd_args[0]))
+	char	*binpath;
+	binpath = access_ok(cmd_args);
+	if (!binpath)
 		return (errno = EACCES, perror("access() denied"), 1);
-	
+
 
 }
 
