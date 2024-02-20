@@ -19,7 +19,7 @@
 
 extern const char **environ;
 
-const char *pathvar()
+const char *get_pathvar()
 {
 	ssize_t	i;
 	i = -1;
@@ -40,44 +40,58 @@ const char *pathvar()
 
 // //else pipe_pipex(pid, pipefd, file, cmd)
 
+int	 parse_pipex(char *cmd)
+{
+	char *pathvar;
+	pathvar = get_pathvar();
 
-// int	main(int ac, char *av[])
-// {
-// 	if (ac != 5)
-// 		return (errno = EINVAL, perror("Program requires 5 args"), 1);
-// //	else return (printf("win"), 0);
+	cmd_args = ft_split(cmd, ' ');
+	if (!access_ok(cmd_args[0]))
+		return (errno = EACCES, perror("access() denied"), 1);
+	
 
-// 	int	pipefd[2];
-// 	pipe(pipefd);
+}
 
-// 	int rpipe = pipefd[0];
-// 	int wpipe = pipefd[1];
-// 	printf("rpipe is:", rpipe);
-// 	printf("wpipe is:", wpipe);
 
-// 	int pid;
-// 	pid = fork();
-// 	if (pid < 0) return (errno = ESRCH, perror("pid < 0"), 1);
+int	main(int ac, char *av[])
+{
+	if (ac != 5)
+		return (errno = EINVAL, perror("Program requires 5 args"), 1);
+//	else return (printf("win"), 0);
 
-// 	char *infile = av[1];
-// 	char *cmd1 = av[2];
-// 	char *cmd2 = av[3];
-// 	char *outfile = av[4];
+	int	pipefd[2];
+	pipe(pipefd);
 
-// 	if (pid == 0)
-// 	{
-// 		close(rpipe);
-// 		//parse_pipex(infile, cmd1, rpipe, pid);
-// 		return (0);
-// 	}
+	int rpipe = pipefd[0];
+	int wpipe = pipefd[1];
+	printf("rpipe is:", rpipe);
+	printf("wpipe is:", wpipe);
 
-// 	//search in $PATH /bin directory for cmd1
-// 	//check access to 
+	int	pid;
+	pid = fork();
+	if (pid < 0) return (errno = ESRCH, perror("pid < 0"), 1);
 
-// 	else
-// 	{
-// 		wait();
-// 		close(wpipe);
-// 		//parse_pipex(outfile, cmd2, wpipe, pid);
-// 	}
-// }
+	char *infile = av[1];
+	char *cmd1 = av[2];
+	char *cmd2 = av[3];
+	char *outfile = av[4];
+
+
+	if (pid == 0)
+	{
+		close(rpipe);
+		//parse_pipex(infile, cmd1, rpipe, pid);
+		parse_pipex(cmd1);
+		return (0);
+	}
+
+	//search in $PATH /bin directory for cmd1
+	//check access to 
+
+	else
+	{
+		wait();
+		close(wpipe);
+		//parse_pipex(outfile, cmd2, wpipe, pid);
+	}
+}
