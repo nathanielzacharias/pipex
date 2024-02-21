@@ -49,10 +49,20 @@ char	*access_ok(char **cmd)
 	char	**indv_paths;
 	indv_paths = ft_split(cmd, ':');
 
+	char	*tmp;
+
 	ssize_t	i;
 	i = -1;
 	while (indv_paths[++i])
-		if(access(indv_paths[i]), X_OK) return (indv_paths[i]);
+	{
+		if(access(indv_paths[i]), X_OK)
+		{	
+			tmp = indv_paths[i];
+			free(indv_paths);
+			return (tmp);
+		} 
+	}
+	free(indv_paths);
 	return(NULL);
 }
 
@@ -70,9 +80,15 @@ int	 parse_pipex(char *cmd, int pid)
 
 	if (pid == 0)
 	{
-
+		
+	}
+	else
+	{
+		
 	}
 
+	free(cmd_args);
+	return(0);
 }
 
 
@@ -103,8 +119,6 @@ int	main(int ac, char *av[])
 
 	char *cmd1 = av[2];
 	char *cmd2 = av[3];
-
-
 
 	if (pid == 0)
 	{
