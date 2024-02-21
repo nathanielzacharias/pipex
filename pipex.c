@@ -94,10 +94,16 @@ int	main(int ac, char *av[])
 	pid = fork();
 	if (pid < 0) return (errno = ESRCH, perror("pid < 0"), 1);
 
-	int infile = open(av[1], O_RDONLY);
+	int in_fd;
+	int out_fd;
+	in_fd = open(av[1], O_RDONLY);
+	out_fd = open(av[4], O_TRUNC | O_CREAT | O_WRONLY, 0644);
+	if (in_fd < 0 || out_fd < 0)
+		return (errno = EBADFD, perror("open() returns -1 for in_fd or out_fd"), 1);
+
 	char *cmd1 = av[2];
 	char *cmd2 = av[3];
-	int outfile = open(av[4], O_TRUNC | O_CREAT | O_WRONLY, 0644);
+
 
 
 	if (pid == 0)
