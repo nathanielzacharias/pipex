@@ -67,7 +67,7 @@ char	*access_ok(char **cmd)
 }
 
 
-int	 parse_pipex(char *cmd, int pid)
+int	 parse_pipex(char *cmd, int pid, int fd)
 {
 
 	char	**cmd_args;
@@ -80,11 +80,11 @@ int	 parse_pipex(char *cmd, int pid)
 
 	if (pid == 0)
 	{
-		
+
 	}
 	else
 	{
-		
+
 	}
 
 	free(cmd_args);
@@ -98,8 +98,18 @@ int	main(int ac, char *av[])
 		return (errno = EINVAL, perror("Program requires 5 args"), 1);
 //	else return (printf("win"), 0);
 
+	int in_fd;
+	int out_fd;
+	in_fd = open(av[1], O_RDONLY);
+	out_fd = open(av[4], O_TRUNC | O_CREAT | O_WRONLY, 0644);
+	if (in_fd < 0 || out_fd < 0)
+		return (errno = EBADFD, perror("open() returns -1 for in_fd or out_fd"), 1);
+	
 	int	pipefd[2];
 	pipe(pipefd);
+
+	char *cmd1 = av[2];
+	char *cmd2 = av[3];
 
 	int rpipe = pipefd[0];
 	int wpipe = pipefd[1];
@@ -110,21 +120,11 @@ int	main(int ac, char *av[])
 	pid = fork();
 	if (pid < 0) return (errno = ESRCH, perror("pid < 0"), 1);
 
-	int in_fd;
-	int out_fd;
-	in_fd = open(av[1], O_RDONLY);
-	out_fd = open(av[4], O_TRUNC | O_CREAT | O_WRONLY, 0644);
-	if (in_fd < 0 || out_fd < 0)
-		return (errno = EBADFD, perror("open() returns -1 for in_fd or out_fd"), 1);
-
-	char *cmd1 = av[2];
-	char *cmd2 = av[3];
-
 	if (pid == 0)
 	{
 		close(rpipe);
 		//parse_pipex(infile, cmd1, rpipe, pid);
-		parse_pipex(cmd1, pid);
+		parse_pipex(cmd1, pid, in_fd);
 		return (0);
 	}
 
