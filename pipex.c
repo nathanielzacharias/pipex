@@ -89,12 +89,15 @@ int	 parse_pipex(char *cmd, int pid, int fd, int pipe_end)
 	{
 		checkdup01 = dup2(pipe_end, STDOUT);
 		checkdup02 = dup2(fd, STDIN);
-		if (checkdup01 < 0 || checkdup02 < 0) return(perror("dup2() failed"), 1);
+		if (checkdup01 < 0 || checkdup02 < 0) return(perror("dup2() failed in child"), 1);
 		execve(binpath, cmd_args, environ);
 	}
 	else
 	{
-
+		checkdup01 = dup2(pipe_end, STDIN);
+		checkdup02 = dup2(fd, STDOUT);
+		if (checkdup01 < 0 || checkdup02 < 0) return(perror("dup2() failed in parent"), 1);
+		execve(binpath, cmd_args, environ);
 	}
 
 	free(cmd_args);
