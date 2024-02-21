@@ -41,13 +41,18 @@ const char *get_pathvar()
 // //else pipe_pipex(pid, pipefd, file, cmd)
 
 
-char	*access_ok(char *cmd)
+char	*access_ok(char **cmd)
 {
 	char	*pathvar;
 	pathvar = get_pathvar();
 	
-	char	*indv_paths;
-	indv_paths = 
+	char	**indv_paths;
+	indv_paths = ft_split(cmd, ':');
+
+	ssize_t	i;
+	i = -1;
+	while (indv_paths[++i])
+		if(access(indv_paths[i]), X_OK) return (indv_paths[i]);
 	return(NULL);
 }
 
@@ -57,6 +62,7 @@ int	 parse_pipex(char *cmd)
 
 	char	**cmd_args;
 	cmd_args = ft_split(cmd, ' ');
+	
 	char	*binpath;
 	binpath = access_ok(cmd_args);
 	if (!binpath)
