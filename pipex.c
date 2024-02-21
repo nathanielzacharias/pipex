@@ -57,7 +57,7 @@ char	*access_ok(char **cmd)
 }
 
 
-int	 parse_pipex(char *cmd)
+int	 parse_pipex(char *cmd, int pid)
 {
 
 	char	**cmd_args;
@@ -68,6 +68,10 @@ int	 parse_pipex(char *cmd)
 	if (!binpath)
 		return (errno = EACCES, perror("access() denied"), 1);
 
+	if (pid == 0)
+	{
+
+	}
 
 }
 
@@ -90,17 +94,17 @@ int	main(int ac, char *av[])
 	pid = fork();
 	if (pid < 0) return (errno = ESRCH, perror("pid < 0"), 1);
 
-	char *infile = av[1];
+	int infile = open(av[1], O_RDONLY);
 	char *cmd1 = av[2];
 	char *cmd2 = av[3];
-	char *outfile = av[4];
+	int outfile = open(av[4], O_TRUNC | O_CREAT | O_WRONLY, 0644);
 
 
 	if (pid == 0)
 	{
 		close(rpipe);
 		//parse_pipex(infile, cmd1, rpipe, pid);
-		parse_pipex(cmd1);
+		parse_pipex(cmd1, pid);
 		return (0);
 	}
 
