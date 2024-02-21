@@ -17,6 +17,10 @@
 # include <errno.h>
 # include "libft/libft.h"
 
+#define STDIN 0
+#define STDOUT 1
+#define STDERR 2
+
 extern const char **environ;
 
 const char *get_pathvar()
@@ -67,7 +71,7 @@ char	*access_ok(char **cmd)
 }
 
 
-int	 parse_pipex(char *cmd, int pid, int fd)
+int	 parse_pipex(char *cmd, int pid, int fd, int pipe_end)
 {
 
 	char	**cmd_args;
@@ -78,9 +82,15 @@ int	 parse_pipex(char *cmd, int pid, int fd)
 	if (!binpath)
 		return (errno = EACCES, perror("access() denied"), 1);
 
+	int checkdup01;
+	int checkdup02;
+
 	if (pid == 0)
 	{
-
+		checkdup01 = dup2(pipe_end, STDOUT);
+		checkdup02 = dup2(fd, STDIN);
+		if (checkdup01 < 0 || checkdup02 < 0) return(perror("dup2() failed"), 1);
+		execve(binpath, cmd_args, environ);
 	}
 	else
 	{
@@ -124,7 +134,7 @@ int	main(int ac, char *av[])
 	{
 		close(rpipe);
 		//parse_pipex(infile, cmd1, rpipe, pid);
-		parse_pipex(cmd1, pid, in_fd);
+		parse_pipex(cmd1, pid, in_fd, wpipe);
 		return (0);
 	}
 
