@@ -16,6 +16,7 @@
 # include <fcntl.h>
 # include <errno.h>
 # include "libft/libft.h"
+# include <sys/wait.h>
 
 #define STDIN 0
 #define STDOUT 1
@@ -32,22 +33,9 @@ const char *get_pathvar()
 	return(NULL);
 }
 
-
-
-// //parse_pipex(pid, )
-// char	*binpath;
-// char	**cmd_flag;
-// int		fd;
-
-// cmd_flag = ft_split(cmd, ' ');
-
-
-// //else pipe_pipex(pid, pipefd, file, cmd)
-
-
-char	*access_ok(char **cmd)
+char	*access_ok(char *cmd)
 {
-	char	*pathvar;
+	const char	*pathvar;
 	pathvar = get_pathvar();
 	
 	char	**indv_paths;
@@ -59,7 +47,7 @@ char	*access_ok(char **cmd)
 	i = -1;
 	while (indv_paths[++i])
 	{
-		if(access(indv_paths[i]), X_OK)
+		if(access(indv_paths[i], X_OK))
 		{	
 			tmp = indv_paths[i];
 			free(indv_paths);
@@ -70,7 +58,6 @@ char	*access_ok(char **cmd)
 	return(NULL);
 }
 
-
 int	 parse_pipex(char *cmd, int pid, int fd, int pipe_end)
 {
 
@@ -78,7 +65,7 @@ int	 parse_pipex(char *cmd, int pid, int fd, int pipe_end)
 	cmd_args = ft_split(cmd, ' ');
 	
 	char	*binpath;
-	binpath = access_ok(cmd_args);
+	binpath = access_ok(cmd_args[0]);
 	if (!binpath)
 		return (errno = EACCES, perror("access() denied"), 1);
 
@@ -90,20 +77,19 @@ int	 parse_pipex(char *cmd, int pid, int fd, int pipe_end)
 		checkdup01 = dup2(pipe_end, STDOUT);
 		checkdup02 = dup2(fd, STDIN);
 		if (checkdup01 < 0 || checkdup02 < 0) return(perror("dup2() failed in child"), 1);
-		execve(binpath, cmd_args, environ);
+		execve(binpath, cmd_args, (char *const *)environ);
 	}
 	else
 	{
 		checkdup01 = dup2(pipe_end, STDIN);
 		checkdup02 = dup2(fd, STDOUT);
 		if (checkdup01 < 0 || checkdup02 < 0) return(perror("dup2() failed in parent"), 1);
-		execve(binpath, cmd_args, environ);
+		execve(binpath, cmd_args, (char *const *)environ);
 	}
 
 	free(cmd_args);
 	return(0);
 }
-
 
 int	main(int ac, char *av[])
 {
@@ -126,8 +112,8 @@ int	main(int ac, char *av[])
 
 	int rpipe = pipefd[0];
 	int wpipe = pipefd[1];
-	printf("rpipe is:", rpipe);
-	printf("wpipe is:", wpipe);
+	// printf("\nrpipe is:%d", rpipe);
+	// printf("\nwpipe is:%d", wpipe);
 
 	int	pid;
 	pid = fork();
@@ -146,8 +132,10 @@ int	main(int ac, char *av[])
 
 	else
 	{
-		wait();
+		// wait(NULL);
+		waitpid(-1, NULL, 0);
 		close(wpipe);
 		//parse_pipex(outfile, cmd2, wpipe, pid);
+		parse_pipex(cmd2, pid, out_fd, rpipe);
 	}
 }
