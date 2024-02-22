@@ -105,37 +105,39 @@ int	main(int ac, char *av[])
 		return (errno = EBADFD, perror("open() returns -1 for in_fd or out_fd"), 1);
 	
 	int	pipefd[2];
-	pipe(pipefd);
+	int pipe_success;
+	pipe_success = pipe(pipefd);
+	if (pipe_success < 0)
+		return(errno = EPIPE, perror("pipe_success < 0"), 1);
+
+	printf("\npast pipe()");
 
 	char *cmd1 = av[2];
 	char *cmd2 = av[3];
-
 	int rpipe = pipefd[0];
 	int wpipe = pipefd[1];
 	// printf("\nrpipe is:%d", rpipe);
 	// printf("\nwpipe is:%d", wpipe);
 
+	printf("\npast assigns PID is:%d", getpid());
+
 	int	pid;
 	pid = fork();
 	if (pid < 0) return (errno = ESRCH, perror("pid < 0"), 1);
 
-	if (pid == 0)
+	printf("\npast fork() PID is:%d", getpid());
+
+	if (pid == 0) //run child
 	{
 		close(rpipe);
-		//parse_pipex(infile, cmd1, rpipe, pid);
 		parse_pipex(cmd1, pid, in_fd, wpipe);
 		return (0);
 	}
 
-	//search in $PATH /bin directory for cmd1
-	//check access to 
-
-	else
+	else //run parent
 	{
-		// wait(NULL);
 		waitpid(-1, NULL, 0);
 		close(wpipe);
-		//parse_pipex(outfile, cmd2, wpipe, pid);
 		parse_pipex(cmd2, pid, out_fd, rpipe);
 	}
 }
