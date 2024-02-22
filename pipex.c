@@ -72,6 +72,8 @@ int	 parse_pipex(char *cmd, int pid, int fd, int pipe_end)
 	int checkdup01;
 	int checkdup02;
 
+	printf("\n%s\n", );
+
 	if (pid == 0)
 	{
 		checkdup01 = dup2(pipe_end, STDOUT);
@@ -120,16 +122,21 @@ int	main(int ac, char *av[])
 	// printf("\nwpipe is:%d", wpipe);
 
 	printf("\npast assigns PID is:%d", getpid());
+	fflush(NULL);
 
 	int	pid;
 	pid = fork();
 	if (pid < 0) return (errno = ESRCH, perror("pid < 0"), 1);
 
+
 	printf("\npast fork() PID is:%d", getpid());
+	fflush(NULL);
 
 	if (pid == 0) //run child
 	{
 		close(rpipe);
+		printf("\nin pid child");
+		fflush(NULL);
 		parse_pipex(cmd1, pid, in_fd, wpipe);
 		return (0);
 	}
@@ -138,6 +145,8 @@ int	main(int ac, char *av[])
 	{
 		waitpid(-1, NULL, 0);
 		close(wpipe);
+		printf("\nin pid parent");
+		fflush(NULL);
 		parse_pipex(cmd2, pid, out_fd, rpipe);
 	}
 }
