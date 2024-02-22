@@ -72,20 +72,25 @@ int	 parse_pipex(char *cmd, int pid, int fd, int pipe_end)
 	int checkdup01;
 	int checkdup02;
 
-	printf("\n%s\n", );
-
+	// printf("\nbinpath is: %s", binpath); fflush(NULL);
+	
 	if (pid == 0)
 	{
-		checkdup01 = dup2(pipe_end, STDOUT);
-		checkdup02 = dup2(fd, STDIN);
-		if (checkdup01 < 0 || checkdup02 < 0) return(perror("dup2() failed in child"), 1);
+		checkdup01 = dup2(pipe_end, STDOUT_FILENO);
+		// checkdup02 = dup2(fd, STDIN_FILENO);
+		// if (checkdup01 < 0 || checkdup02 < 0) return(perror("dup2() failed in child"), 1);
+		if (checkdup01 < 0) return(perror("dup2() failed in child"), 1);
+		// printf("\ncdup01 is:%d \t cdup02 is: %d", checkdup01, checkdup02); fflush(NULL);
+		// printf("\nin parse_pipex, child"); fflush(NULL);
 		execve(binpath, cmd_args, (char *const *)environ);
 	}
 	else
 	{
-		checkdup01 = dup2(pipe_end, STDIN);
-		checkdup02 = dup2(fd, STDOUT);
-		if (checkdup01 < 0 || checkdup02 < 0) return(perror("dup2() failed in parent"), 1);
+		checkdup01 = dup2(pipe_end, STDIN_FILENO);
+		// checkdup02 = dup2(fd, STDOUT);
+		if (checkdup01 < 0 ) return(perror("dup2() failed in parent"), 1);
+		// printf("\ncdup01 is:%d \t cdup02 is: %d", checkdup01, checkdup02); fflush(NULL);
+		// printf("\nin parse_pipex, parent"); fflush(NULL);
 		execve(binpath, cmd_args, (char *const *)environ);
 	}
 
@@ -112,41 +117,45 @@ int	main(int ac, char *av[])
 	if (pipe_success < 0)
 		return(errno = EPIPE, perror("pipe_success < 0"), 1);
 
-	printf("\npast pipe()");
+	// printf("\npast pipe()");
 
 	char *cmd1 = av[2];
 	char *cmd2 = av[3];
-	int rpipe = pipefd[0];
-	int wpipe = pipefd[1];
+	// int rpipe = pipefd[0];
+	// int wpipe = pipefd[1];
 	// printf("\nrpipe is:%d", rpipe);
 	// printf("\nwpipe is:%d", wpipe);
 
-	printf("\npast assigns PID is:%d", getpid());
-	fflush(NULL);
+	// printf("\npast assigns PID is:%d", getpid());
+	// fflush(NULL);
+
+	dup2(in_fd, STDIN_FILENO);
+	dup2(out_fd, STDOUT_FILENO);	
 
 	int	pid;
 	pid = fork();
 	if (pid < 0) return (errno = ESRCH, perror("pid < 0"), 1);
 
-
-	printf("\npast fork() PID is:%d", getpid());
-	fflush(NULL);
+	// printf("\npast fork() PID is:%d", getpid());
+	// fflush(NULL);
 
 	if (pid == 0) //run child
 	{
-		close(rpipe);
-		printf("\nin pid child");
-		fflush(NULL);
-		parse_pipex(cmd1, pid, in_fd, wpipe);
-		return (0);
+		close(pipefd[0]);
+		// printf("\nin pid child");
+		// fflush(NULL);
+		// dup2(in_fd, STDIN_FILENO);
+		parse_pipex(cmd1, pid, STDIN_FILENO, pipefd[1]);
+		// return (0);
 	}
 
 	else //run parent
 	{
+
 		waitpid(-1, NULL, 0);
-		close(wpipe);
-		printf("\nin pid parent");
-		fflush(NULL);
-		parse_pipex(cmd2, pid, out_fd, rpipe);
+		close(pipefd[1]);
+		// printf("\nin pid parent");
+		// fflush(NULL);
+		parse_pipex(cmd2, pid, STDOUT_FILENO, pipefd[0]);
 	}
 }
