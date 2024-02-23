@@ -137,8 +137,8 @@ int	main(int ac, char *av[])
 	// fflush(NULL);
 
 	dup2(in_fd, STDIN_FILENO);
-	dup2(out_fd, STDOUT_FILENO);	
-
+	dup2(out_fd, STDOUT_FILENO);
+	
 	int	pid;
 	pid = fork();
 	if (pid < 0) return (errno = ESRCH, perror("pid < 0"), 1);
