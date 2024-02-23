@@ -18,9 +18,9 @@
 # include "libft/libft.h"
 # include <sys/wait.h>
 
-#define STDIN 0
-#define STDOUT 1
-#define STDERR 2
+#define STDIN_FILENO 0
+#define STDOUT_FILENO 1
+#define STDERR_FILENO 2
 
 extern const char **environ;
 
@@ -29,7 +29,12 @@ const char *get_pathvar()
 	ssize_t	i;
 	i = -1;
 	while(environ[++i])
-		if(!ft_strncmp((environ[i]), "PATH=", 5)) return(environ[i]);
+	{
+		if(!ft_strncmp((environ[i]), "PATH=", 5))
+		{
+			return(ft_strtrim(environ[i], "PATH="));
+		}
+	}
 	return(NULL);
 }
 
@@ -37,9 +42,10 @@ char	*access_ok(char *cmd)
 {
 	const char	*pathvar;
 	pathvar = get_pathvar();
+	// printf("\npathvar is:%s", pathvar); fflush(NULL);
 	
 	char	**indv_paths;
-	indv_paths = ft_split(cmd, ':');
+	indv_paths = ft_split(pathvar, ':');
 
 	char	*tmp;
 
@@ -47,12 +53,16 @@ char	*access_ok(char *cmd)
 	i = -1;
 	while (indv_paths[++i])
 	{
-		if(access(indv_paths[i], X_OK))
+		// printf("\nindv_paths[%zd] is: %s",i, indv_paths[i]); fflush(NULL);
+
+		int access_check;
+		access_check = access(indv_paths[i], X_OK);
+		if(access_check == 0)
 		{	
 			tmp = indv_paths[i];
 			free(indv_paths);
 			return (tmp);
-		} 
+		}
 	}
 	free(indv_paths);
 	return(NULL);
@@ -68,6 +78,7 @@ int	 parse_pipex(char *cmd, int pid, int fd, int pipe_end)
 	binpath = access_ok(cmd_args[0]);
 	if (!binpath)
 		return (errno = EACCES, perror("access() denied"), 1);
+	printf("\nbinpath is: %s\n", binpath);
 
 	int checkdup01;
 	int checkdup02;
@@ -102,29 +113,25 @@ int	main(int ac, char *av[])
 {
 	if (ac != 5)
 		return (errno = EINVAL, perror("Program requires 5 args"), 1);
-//	else return (printf("win"), 0);
 
+	//open file descriptors from arg 1 and arg last
 	int in_fd;
 	int out_fd;
 	in_fd = open(av[1], O_RDONLY);
-	out_fd = open(av[argc -1], O_TRUNC | O_CREAT | O_WRONLY, 0644);
+	out_fd = open(av[ac -1], O_TRUNC | O_CREAT | O_WRONLY, 0644);
 	if (in_fd < 0 || out_fd < 0)
 		return (errno = EBADFD, perror("open() returns -1 for in_fd or out_fd"), 1);
-	
+	// printf("\nin_fd is:%d", in_fd); fflush(NULL);
+	// printf("\nout_fd is:%d", out_fd); fflush(NULL);
+
+	//open pipes for read and write
 	int	pipefd[2];
 	int pipe_success;
 	pipe_success = pipe(pipefd);
 	if (pipe_success < 0)
 		return(errno = EPIPE, perror("pipe_success < 0"), 1);
-
-	// printf("\npast pipe()");
-
-	char *cmd1 = av[2];
-	char *cmd2 = av[3];
-	// int rpipe = pipefd[0];
-	// int wpipe = pipefd[1];
-	// printf("\nrpipe is:%d", rpipe);
-	// printf("\nwpipe is:%d", wpipe);
+	// printf("\npipefd 0 is:%d", pipefd[0]); fflush(NULL);
+	// printf("\npipefd 1 is:%d", pipefd[1]); fflush(NULL);
 
 	// printf("\npast assigns PID is:%d", getpid());
 	// fflush(NULL);
@@ -135,17 +142,15 @@ int	main(int ac, char *av[])
 	int	pid;
 	pid = fork();
 	if (pid < 0) return (errno = ESRCH, perror("pid < 0"), 1);
-
-	// printf("\npast fork() PID is:%d", getpid());
-	// fflush(NULL);
+	// printf("\npast fork() PID is:%d", getpid()); fflush(NULL);
 
 	if (pid == 0) //run child
 	{
-		close(pipefd[0]);
+		close(pipefd[0]); //close read end
 		// printf("\nin pid child");
 		// fflush(NULL);
 		// dup2(in_fd, STDIN_FILENO);
-		parse_pipex(cmd1, pid, STDIN_FILENO, pipefd[1]);
+		parse_pipex(av[2], pid, STDIN_FILENO, pipefd[1]);
 		// return (0);
 	}
 
@@ -153,9 +158,9 @@ int	main(int ac, char *av[])
 	{
 
 		waitpid(-1, NULL, 0);
-		close(pipefd[1]);
+		close(pipefd[1]); //close write end
 		// printf("\nin pid parent");
 		// fflush(NULL);
-		parse_pipex(cmd2, pid, STDOUT_FILENO, pipefd[0]);
+		parse_pipex(av[3], pid, STDOUT_FILENO, pipefd[0]);
 	}
 }
