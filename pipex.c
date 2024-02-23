@@ -107,7 +107,7 @@ int	main(int ac, char *av[])
 	int in_fd;
 	int out_fd;
 	in_fd = open(av[1], O_RDONLY);
-	out_fd = open(av[4], O_TRUNC | O_CREAT | O_WRONLY, 0644);
+	out_fd = open(av[argc -1], O_TRUNC | O_CREAT | O_WRONLY, 0644);
 	if (in_fd < 0 || out_fd < 0)
 		return (errno = EBADFD, perror("open() returns -1 for in_fd or out_fd"), 1);
 	
