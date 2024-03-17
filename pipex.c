@@ -95,36 +95,42 @@ int	 parse_pipex(char *cmd, int pid, int fd, int pipe_end)
 	return(0);
 }
 
+int hasErrors(int ac, int pipefd[])
+{
+	if (ac != 5)
+		return(errno = EINVAL, perror("Program requires 5 args"), 1);
+	pipe_success = pipe(pipefd);
+	if (pipe_success < 0)
+		return (errno = EPIPE, perror("pipe_success < 0"), 1);
+}
+
 int	main(int ac, char *av[])
 {
 	int in_fd;
 	int out_fd;
 	int	pipefd[2];
-	int pipe_success;
 	int	pid;
-	
-	if (ac != 5)
-		return(errno = EINVAL, perror("Program requires 5 args"), 1);
+
+	if hasErrors()
+
 	in_fd = open(av[1], O_RDONLY);
 	out_fd = open(av[ac -1], O_TRUNC | O_CREAT | O_WRONLY, 0644);
 	if (in_fd < 0 || out_fd < 0)
 		return(errno = EBADFD, perror("open() returns -1 for in_fd or out_fd"), 1);
-	pipe_success = pipe(pipefd);
-	if (pipe_success < 0)
-		return (errno = EPIPE, perror("pipe_success < 0"), 1);
 	dup2(in_fd, STDIN_FILENO);
 	dup2(out_fd, STDOUT_FILENO);
 	pid = fork();
-	if (pid < 0) return(errno = ESRCH, perror("pid < 0"), 1);
-	if (pid == 0) 
+	if (pid < 0)
+		return(errno = ESRCH, perror("pid < 0"), 1);
+	if (pid == 0)
 	{
 		close(pipefd[0]);
 		parse_pipex(av[2], pid, STDIN_FILENO, pipefd[1]);
 	}
-	else 
+	else
 	{
 		waitpid(-1, NULL, 0);
-		close(pipefd[1]); 
+		close(pipefd[1]);
 		parse_pipex(av[3], pid, STDOUT_FILENO, pipefd[0]);
 	}
 }
