@@ -55,14 +55,19 @@ char	*access_ok(char *cmd)
 	{
 		// printf("\nindv_paths[%zd] is: %s",i, indv_paths[i]); fflush(NULL);
 
+		char *pathwcmd;
+		pathwcmd = ft_strjoin(ft_strjoin(indv_paths[i], "/"), cmd);
+
 		int access_check;
-		access_check = access(indv_paths[i], X_OK);
+		access_check = access(pathwcmd, X_OK);
 		if(access_check == 0)
 		{	
-			tmp = indv_paths[i];
+			tmp = pathwcmd;
 			free(indv_paths);
+			// free(pathwcmd);
 			return (tmp);
 		}
+		free(pathwcmd);
 	}
 	free(indv_paths);
 	return(NULL);
@@ -73,6 +78,7 @@ int	 parse_pipex(char *cmd, int pid, int fd, int pipe_end)
 
 	char	**cmd_args;
 	cmd_args = ft_split(cmd, ' ');
+	// printf("\ncmd_args[0] is:%s\n", cmd_args[0]);
 	
 	char	*binpath;
 	binpath = access_ok(cmd_args[0]);
@@ -80,29 +86,33 @@ int	 parse_pipex(char *cmd, int pid, int fd, int pipe_end)
 		return (errno = EACCES, perror("access() denied"), 1);
 	printf("\nbinpath is: %s\n", binpath);
 
-	int checkdup01;
-	int checkdup02;
+	int checkdupchild;
+	int checkdupparent;
 
 	// printf("\nbinpath is: %s", binpath); fflush(NULL);
 	
 	if (pid == 0)
 	{
-		checkdup01 = dup2(pipe_end, STDOUT_FILENO);
+		checkdupchild = dup2(pipe_end, STDOUT_FILENO);
 		// checkdup02 = dup2(fd, STDIN_FILENO);
 		// if (checkdup01 < 0 || checkdup02 < 0) return(perror("dup2() failed in child"), 1);
-		if (checkdup01 < 0) return(perror("dup2() failed in child"), 1);
+		if (checkdupchild < 0) return(perror("dup2() failed in child"), 1);
 		// printf("\ncdup01 is:%d \t cdup02 is: %d", checkdup01, checkdup02); fflush(NULL);
 		// printf("\nin parse_pipex, child"); fflush(NULL);
 		execve(binpath, cmd_args, (char *const *)environ);
+		perror("");
+		printf("child printf after execve");
 	}
 	else
 	{
-		checkdup01 = dup2(pipe_end, STDIN_FILENO);
+		checkdupparent = dup2(pipe_end, STDIN_FILENO);
 		// checkdup02 = dup2(fd, STDOUT);
-		if (checkdup01 < 0 ) return(perror("dup2() failed in parent"), 1);
+		if (checkdupparent < 0 ) return(perror("dup2() failed in parent"), 1);
 		// printf("\ncdup01 is:%d \t cdup02 is: %d", checkdup01, checkdup02); fflush(NULL);
 		// printf("\nin parse_pipex, parent"); fflush(NULL);
 		execve(binpath, cmd_args, (char *const *)environ);
+		perror("");
+		printf("parent printf after execve");
 	}
 
 	free(cmd_args);
