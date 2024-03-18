@@ -62,7 +62,7 @@ int	parse_pipex(char *cmd, int pid, int pipe_end)
 		if (checkdupparent < 0)
 			return (perror("dup2() failed in parent"), 1);
 		execve(binpath, cmd_args, (char *const *)environ);
-		// perror("In parent second child: ");
+		perror("In parent second child: ");
 	}
 	return (0);
 }
