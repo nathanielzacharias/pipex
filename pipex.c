@@ -18,10 +18,6 @@
 # include "libft/libft.h"
 # include <sys/wait.h>
 
-#define STDIN_FILENO 0
-#define STDOUT_FILENO 1
-#define STDERR_FILENO 2
-
 extern const char **environ;
 
 const char *get_pathvar()
@@ -58,7 +54,6 @@ char	*access_ok(char *cmd)
 		{	
 			tmp = pathwcmd;
 			free(indv_paths);
-			// free(pathwcmd);
 			return (tmp);
 		}
 		free(pathwcmd);
@@ -67,7 +62,7 @@ char	*access_ok(char *cmd)
 	return(NULL);
 }
 
-int	 parse_pipex(char *cmd, int pid, int fd, int pipe_end)
+int	 parse_pipex(char *cmd, int pid, int pipe_end)
 {
 	char	**cmd_args;
 	int 	checkdupchild;
@@ -76,22 +71,18 @@ int	 parse_pipex(char *cmd, int pid, int fd, int pipe_end)
 	
 	cmd_args = ft_split(cmd, ' ');
 	binpath = access_ok(cmd_args[0]);
-	// printf("pid is : %d \n", pid);
 	if (!binpath)
 		return (errno = EACCES, perror("access() denied"), 1);
-	// if (pid ==1) printf("binpath is: %s\n", binpath );
-	
 	if (pid == 0)
 	{
 		checkdupchild = dup2(pipe_end, STDOUT_FILENO);
 		if (checkdupchild < 0) return(perror("dup2() failed in child"), 1);
 		execve(binpath, cmd_args, (char *const *)environ);
-		// perror("In child: ");
+		perror("In first child: ");
 	}
 	else
 	{
 		checkdupparent = dup2(pipe_end, STDIN_FILENO);
-		// close(pipe_end);
 		if (checkdupparent < 0 ) return(perror("dup2() failed in parent"), 1);
 		execve(binpath, cmd_args, (char *const *)environ);
 		perror("In parent second child: ");
@@ -113,7 +104,6 @@ int	main(int ac, char *av[])
 	int	pid;
 	int pipe_success;
 
-	// if hasErrors()
 	if (ac != 5)
 		return(errno = EINVAL, perror("Program requires 5 args"), 1);
 	pipe_success = pipe(pipefd);
@@ -123,40 +113,29 @@ int	main(int ac, char *av[])
 	out_fd = open(av[ac -1], O_TRUNC | O_CREAT | O_WRONLY, 0644);
 	if (in_fd < 0 || out_fd < 0)
 		return(errno = EBADFD, perror("open() returns -1 for in_fd or out_fd"), 1);
-	
-	printf("in main before fork\n");
-
 	pid = fork();
 	if (pid < 0)
 		return(errno = ESRCH, perror("pid < 0"), 1);
-
 	if (pid == 0)
 	{
-		printf("in first child\n");
 		dup2(in_fd, STDIN_FILENO);
 		close(in_fd);
 		close(pipefd[0]);
-		parse_pipex(av[2], 0, STDIN_FILENO, pipefd[1]);
+		parse_pipex(av[2], 0, pipefd[1]);
 	}
-
 	else
 	{
 		waitpid(pid, NULL, 0);
-		printf("in main parent\n");fflush(NULL);
 		pid = fork();
 		if (pid < 0)
 			return(errno = ESRCH, perror("pid < 0"), 1);
 		if (pid == 0)
 		{
-			printf("in main parent after fork in child\n");fflush(NULL);
 			dup2(out_fd, STDOUT_FILENO);
 			close(out_fd);
 			close(pipefd[1]);
-			parse_pipex(av[3], 1, STDOUT_FILENO, pipefd[0]);
+			parse_pipex(av[3], 1, pipefd[0]);
 		}
 	}
-
-	// waitpid(pid, NULL, 0);
-	// printf("in main parent after fork after child\n");fflush(NULL);
 	return(0);
 }
