@@ -9,44 +9,13 @@
 /*   Updated: 2024/02/16 16:09:03 by nzachari         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <fcntl.h>
-#include <errno.h>
-#include "libft/libft.h"
-#include <sys/wait.h>
 
-extern const char	**environ;
-
-typedef struct s_fdstruct
-{
-	int	in_fd;
-	int	out_fd;
-	int	pipefd[2];
-
-}	t_fdstruct;
-
-const char	*get_pathvar(void)
-{
-	ssize_t	i;
-
-	i = -1;
-	while (environ[++i])
-	{
-		if (!ft_strncmp((environ[i]), "PATH=", 5))
-		{
-			return (ft_strtrim(environ[i], "PATH="));
-		}
-	}
-	return (NULL);
-}
+#include "pipex.h"
 
 char	*access_ok(char *cmd)
 {
 	const char	*pathvar;
 	char		**indv_paths;
-	char		*tmp;
 	char		*pathwcmd;
 	int			access_check;
 	ssize_t		i;
@@ -60,7 +29,6 @@ char	*access_ok(char *cmd)
 		access_check = access(pathwcmd, X_OK);
 		if (access_check == 0)
 		{
-			tmp = pathwcmd;
 			free(indv_paths);
 			return (pathwcmd);
 		}
