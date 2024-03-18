@@ -62,7 +62,7 @@ int	parse_pipex(char *cmd, int pid, int pipe_end)
 		if (checkdupparent < 0)
 			return (perror("dup2() failed in parent"), 1);
 		execve(binpath, cmd_args, (char *const *)environ);
-		perror("In parent second child: ");
+		// perror("In parent second child: ");
 	}
 	return (0);
 }
@@ -115,7 +115,7 @@ int	main(int ac, char *av[])
 		dup_close_andparse(&fds, 1, av);
 	else
 	{
-		waitpid(pid, NULL, 0);
+		waitpid(pid, NULL, WNOHANG);
 		pid = fork();
 		if (pid < 0)
 			return (errno = ESRCH, perror("pid < 0"), 1);
