@@ -114,6 +114,24 @@ int hasErrors(int ac, char *av[], t_fdstruct *fds)
 	return(0);
 }
 
+void dup_close_andparse(t_fdstruct *fds, int pipein, char *av[])
+{
+	if (pipein == 1)
+	{
+		dup2(fds->in_fd, STDIN_FILENO);
+		close(fds->in_fd);
+		close(fds->pipefd[0]);
+		parse_pipex(av[2], 0, fds->pipefd[1]);
+	}
+	else
+	{
+		dup2(fds->out_fd, STDOUT_FILENO);
+		close(fds->out_fd);
+		close(fds->pipefd[1]);
+		parse_pipex(av[3], 1, fds->pipefd[0]);
+	}
+}
+
 int	main(int ac, char *av[])
 {
 	int	pid;
@@ -125,12 +143,7 @@ int	main(int ac, char *av[])
 	if (pid < 0)
 		return(errno = ESRCH, perror("pid < 0"), 1);
 	if (pid == 0)
-	{
-		dup2(fds->in_fd, STDIN_FILENO);
-		close(fds->in_fd);
-		close(fds->pipefd[0]);
-		parse_pipex(av[2], 0, fds->pipefd[1]);
-	}
+		dup_close_andparse(fds, 1, av);
 	else
 	{
 		waitpid(pid, NULL, 0);
@@ -138,12 +151,7 @@ int	main(int ac, char *av[])
 		if (pid < 0)
 			return(errno = ESRCH, perror("pid < 0"), 1);
 		if (pid == 0)
-		{
-			dup2(fds->out_fd, STDOUT_FILENO);
-			close(fds->out_fd);
-			close(fds->pipefd[1]);
-			parse_pipex(av[3], 1, fds->pipefd[0]);
-		}
+			dup_close_andparse(fds, 0, av);
 	}
 	return(0);
 }
